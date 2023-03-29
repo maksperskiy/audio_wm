@@ -1,0 +1,11 @@
+/.venv
+/.vscode
+__pycache__
+/app/logs
+/app/plugins
+/data
+/.mypy_cache
+venv.sh
+.env
+.ipynb_checkpoints
+logs
