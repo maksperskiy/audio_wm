@@ -9,3 +9,4 @@ venv.sh
 .env
 .ipynb_checkpoints
 logs
+pretrained_models
