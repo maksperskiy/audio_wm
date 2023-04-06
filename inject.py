@@ -7,6 +7,7 @@ from scipy.fft import rfft, rfftfreq, irfft, fft, ifft, dct, fftfreq, idct
 # class prediction
 import json
 import requests
+import scipy.signal as sps
 import zipfile
 
 
@@ -134,6 +135,26 @@ class Injector:
         res[pos_f:pos_t] = res[pos_f:pos_t] - idct(dfr)
         return res, 1
 
+    @classmethod
+    def predict_class(cls, signal):
+        # signal = audio[el:el+15600].tolist()
+        result = requests.post(
+            "http://localhost:8501/v1/models/classifier:predict",
+            data=json.dumps({"instances": signal.tolist()}),
+        )
+        if result:
+            return cls.labels[
+                np.array(json.loads(result.content)["predictions"]).argmax()
+            ]
+
+    @classmethod
+    def get_class_group(cls, prediction):
+        return "some group"
+
+    @classmethod
+    def get_class_params(cls, group):
+        return 1750, 8500, 20
+
     def process_data(self, data, samplerate):
         res = []
         count = 0
@@ -143,10 +164,14 @@ class Injector:
             dt = np.copy(data[fr:to])
 
             # params
-            # prediction = self.predict_class(dt)
-            # class_group = self.get_class_group(prediction)
-            # bottom_freq, top_freq, duration = self.get_class_params(class_group)
-            bottom_freq, top_freq, duration = 1750, 8500, 20
+            number_of_samples = round(len(dt) * 16000 / samplerate)
+            audio = sps.resample(dt, number_of_samples) / 32768
+            prediction = self.predict_class(audio)
+            if prediction:
+                class_group = self.get_class_group(prediction)
+                bottom_freq, top_freq, duration = self.get_class_params(class_group)
+            else:
+                bottom_freq, top_freq, duration = 1750, 8500, 20
 
             frame, cnt = self.process_frame(
                 dt, samplerate, bottom_freq, top_freq, duration
