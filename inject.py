@@ -12,12 +12,12 @@ import zipfile
 
 
 class Injector:
-    def __init__(self, message=0x123456):
-        labels_file = zipfile.ZipFile("./models/classifier/00000001/model.tflite").open(
-            "yamnet_label_list.txt"
-        )
-        self.labels = [l.decode("utf-8").strip() for l in labels_file.readlines()]
+    labels_file = zipfile.ZipFile("./models/classifier/00000001/model.tflite").open(
+        "yamnet_label_list.txt"
+    )
+    labels = [l.decode("utf-8").strip() for l in labels_file.readlines()]
 
+    def __init__(self, message=0x123456):
         # Встраиваемое сообщение
         DWM = message  # 0001 0010 0011 0100 0101 0110
         # Число байт в сообщении
@@ -39,6 +39,7 @@ class Injector:
 
         # Берем файл и разбиваем его на фрагметы длиной N
         self.N = 100000
+        self.N = 42997
         # В каждом фрагменте делаем Дискретное косинусовое преобразование
         # В результате преобразования фильтруем частоты, которые задаем в настройках - т.е. наиболее значимые частоты
         # Оставшийся частотный диапазон делим на m частей, где m = размер диапазона / длину сообщения в битах
@@ -140,11 +141,11 @@ class Injector:
         # signal = audio[el:el+15600].tolist()
         result = requests.post(
             "http://localhost:8501/v1/models/classifier:predict",
-            data=json.dumps({"instances": signal.tolist()}),
+            data=json.dumps({"inputs": signal.tolist()}),
         )
         if result:
             return cls.labels[
-                np.array(json.loads(result.content)["predictions"]).argmax()
+                np.array(json.loads(result.content)["outputs"]["output_0"]).argmax()
             ]
 
     @classmethod
@@ -165,7 +166,7 @@ class Injector:
 
             # params
             number_of_samples = round(len(dt) * 16000 / samplerate)
-            audio = sps.resample(dt, number_of_samples) / 32768
+            audio = sps.resample(dt, number_of_samples)
             prediction = self.predict_class(audio)
             if prediction:
                 class_group = self.get_class_group(prediction)
