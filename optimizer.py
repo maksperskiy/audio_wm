@@ -48,6 +48,7 @@ class ParamsOptimizer():
             print("Target: ", self.x1, self.x2, self.x3)
 
             print("Old params: ", params["freq_b"][-1], params["freq_t"][-1], params["dur"][-1])
+            print("reward: ", params["reward"])
             params["freq_b"].append(self.__limit_value(params["freq_b"][-1] + self.rate*params["freq_b_grad"], max_value=params["freq_t"][-1]+1))
             params["freq_t"].append(self.__limit_value(params["freq_t"][-1] + self.rate*params["freq_t_grad"], min_value=params["freq_b"][-1]+1, max_value=20000))
             params["dur"].append(self.__limit_value(params["dur"][-1] + self.rate*params["dur_grad"], min_value=10, max_value=975))
@@ -88,7 +89,7 @@ if __name__ == "__main__":
 
     for i in range(212):
         optimizer.analyze("music")
-        if i % 27 == 2 and i // 81 >= 1:
+        if i % 28 == 3 and i // 84 >= 1:
             optimizer.class_params["music"]["freq_b_step"] = 100
             optimizer.class_params["music"]["freq_t_step"] = 100
             optimizer.class_params["music"]["dur_step"] = 100
