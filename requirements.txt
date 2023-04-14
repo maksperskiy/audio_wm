@@ -1,3 +1,0 @@
-numpy
-pycairo>=1.18.2
-PyGObject

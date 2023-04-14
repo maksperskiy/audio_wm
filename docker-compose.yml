@@ -1,0 +1,38 @@
+version: '3'
+
+services:
+
+  postgres_optimizer:
+    image: postgres:13
+    profiles:
+      - optimizer
+    environment:
+      POSTGRES_USER: ${OPTIMIZER_POSTGRES_USER}
+      POSTGRES_PASSWORD: ${OPTIMIZER_POSTGRES_PASSWORD}
+      POSTGRES_MULTIPLE_DATABASES: ${OPTIMIZER_POSTGRES_DATABASE}
+    volumes:
+      - postgres-db-volume:/var/lib/postgresql/data
+    ports:
+      - "15432:5432"
+    restart: always
+
+  optimizer:
+    image: optimizer
+    container_name: optimizer
+    profiles:
+      - optimizer
+    build:
+      context: .
+      dockerfile: docker/optimizer/Dockerfile
+    depends_on:
+      - postgres_optimizer
+    env_file:
+      - .env
+    restart: always
+    ports:
+      - "8081:80"
+    volumes:
+      - "./app/optimizer_api:/app/optimizer_api"
+
+volumes:
+  postgres-db-volume:
