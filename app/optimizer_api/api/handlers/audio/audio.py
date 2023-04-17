@@ -24,15 +24,15 @@ class AudioHandler:
     async def get_audio(label: str):
         sound, samplerate = await FileRepository.get_random_audio(label)
         params = await OptimizerRepository.get_last_params(label)
-        
+
         if not params:
             params = await OptimizerRepository.intialize_params(label=label)
 
-        if sound.dtype == 'int32':
-            sound = (sound>>16).astype(np.int16)
-
+        if sound.dtype == "int32":
+            sound = (sound >> 16).astype(np.int16)
+        message = 0x123456
         injector = Injector(
-            message=0x123456,
+            message=message,
             bottom_freq=params.freq_bottom,
             top_freq=params.freq_top,
             duration=params.duration,
@@ -44,31 +44,34 @@ class AudioHandler:
             top_freq=params.freq_top,
             duration=params.duration,
         )
-        message, success_ratio = extractor.process(injected_sound, samplerate)
+        extracted_message, success_ratio = extractor.process(injected_sound, samplerate)
 
         result = SoundResponse(
             label=label,
             message=0x123456,
-            extracted_message=message,
+            extracted_message=extracted_message,
             sound_array=sound.tolist(),
             injected_sound_array=injected_sound.tolist(),
             samplerate=samplerate,
             sound_noise_ratio=sound_noise_ratio,
-            success_ratio=success_ratio,
+            success_ratio=1 if message == extracted_message else 0,
         )
         return result
 
     @staticmethod
-    async def __limit_value(value, min_value=0, max_value=20000):
+    def __limit_value(value, min_value=0, max_value=20000):
         if value > max_value:
             return max_value
         elif value < min_value:
             return min_value
-        return value
+        return int(value)
 
     @staticmethod
-    async def __count_reward(expert_score, sound_noise_ratio, success_ratio):
-        return expert_score / 5 + 1 / sound_noise_ratio + success_ratio
+    def __count_reward(expert_score, sound_noise_ratio, success_ratio):
+        expert_score_part = expert_score / 5
+        sound_noise_ratio_part = 1 / sound_noise_ratio if sound_noise_ratio else 0
+        success_ratio_part = success_ratio
+        return expert_score_part * sound_noise_ratio_part * success_ratio_part
 
     @classmethod
     async def optimize(
@@ -78,30 +81,35 @@ class AudioHandler:
         last_params = await OptimizerRepository.get_last_params(estimation.label)
         base_params = await OptimizerRepository.get_last_base_params(estimation.label)
 
-        base_reward = cls.__count_reward(
-            base_params.expert_score,
-            base_params.sound_noise_ratio,
-            base_params.success_ratio,
-        )
-        reward = cls.__count_reward(
-            estimation.expert_score,
-            estimation.sound_noise_ratio,
-            estimation.success_ratio,
-        )
+        if (
+            base_params.expert_score != None
+            and base_params.sound_noise_ratio != None
+            and base_params.success_ratio != None
+        ):
+            base_reward = cls.__count_reward(
+                base_params.expert_score,
+                base_params.sound_noise_ratio,
+                base_params.success_ratio,
+            )
+            reward = cls.__count_reward(
+                estimation.expert_score,
+                estimation.sound_noise_ratio,
+                estimation.success_ratio,
+            )
 
         if last_params.param_number == None:
             # set to base reward
             # create new params with stepped freq_b
             params = {
-                "label": base_reward.label,
-                "step_number": base_reward.step_number,
+                "label": base_params.label,
+                "step_number": base_params.step_number,
             }
             updates = {
                 "expert_score": estimation.expert_score,
                 "sound_noise_ratio": estimation.sound_noise_ratio,
                 "success_ratio": estimation.success_ratio,
             }
-            await OptimizerRepository.update(updates=updates, params=params)
+            await OptimizerRepository.update(updates, **params)
 
             new_params = ParamsModel(
                 step_number=last_params.step_number + 1,
@@ -109,7 +117,7 @@ class AudioHandler:
                 param_number=0,
                 freq_bottom=cls.__limit_value(
                     base_params.freq_bottom + base_params.freq_bottom_step,
-                    max_value=base_params.freq_top - 1,
+                    max_value=base_params.freq_top - 500,
                 ),
                 freq_top=base_params.freq_top,
                 duration=base_params.duration,
@@ -122,15 +130,15 @@ class AudioHandler:
         elif last_params.param_number == 0:
             # set to base freq_b grad
             # create new params with stepped freq_t
-            gradient = reward - base_reward
+            gradient = reward - float(base_reward)
             params = {
-                "label": base_reward.label,
-                "step_number": base_reward.step_number,
+                "label": base_params.label,
+                "step_number": base_params.step_number,
             }
             updates = {
                 "freq_bottom_grad": gradient,
             }
-            await OptimizerRepository.update(updates=updates, params=params)
+            await OptimizerRepository.update(updates, **params)
 
             new_params = ParamsModel(
                 step_number=last_params.step_number + 1,
@@ -139,7 +147,7 @@ class AudioHandler:
                 freq_bottom=base_params.freq_bottom,
                 freq_top=cls.__limit_value(
                     base_params.freq_top + base_params.freq_top_step,
-                    min_value=base_params.freq_bottom + 1,
+                    min_value=base_params.freq_bottom + 500,
                 ),
                 duration=base_params.duration,
                 freq_bottom_step=base_params.freq_bottom_step,
@@ -151,15 +159,15 @@ class AudioHandler:
         elif last_params.param_number == 1:
             # set to base freq_t grad
             # create new params with stepped duration
-            gradient = reward - base_reward
+            gradient = reward - float(base_reward)
             params = {
-                "label": base_reward.label,
-                "step_number": base_reward.step_number,
+                "label": base_params.label,
+                "step_number": base_params.step_number,
             }
             updates = {
                 "freq_top_grad": gradient,
             }
-            await OptimizerRepository.update(updates=updates, params=params)
+            await OptimizerRepository.update(updates, **params)
 
             new_params = ParamsModel(
                 step_number=last_params.step_number + 1,
@@ -180,15 +188,15 @@ class AudioHandler:
 
         elif last_params.param_number == 2:
             # set to base duration grad
-            gradient = reward - base_reward
+            gradient = reward - float(base_reward)
             params = {
-                "label": base_reward.label,
-                "step_number": base_reward.step_number,
+                "label": base_params.label,
+                "step_number": base_params.step_number,
             }
             updates = {
                 "duration_grad": gradient,
             }
-            await OptimizerRepository.update(updates=updates, params=params)
+            await OptimizerRepository.update(updates, **params)
             # create new base with updated params, steps, empty param_number, reward and grads
             # reset steps if step_number more that xx
 
@@ -219,11 +227,11 @@ class AudioHandler:
                 label=estimation.label,
                 freq_bottom=cls.__limit_value(
                     base_params.freq_bottom + rate * base_params.freq_bottom_grad,
-                    max_value=base_params.freq_top - 1,
+                    max_value=base_params.freq_top - 500,
                 ),
                 freq_top=cls.__limit_value(
                     base_params.freq_top + rate * base_params.freq_top_grad,
-                    min_value=base_params.freq_bottom + 1,
+                    min_value=base_params.freq_bottom + 500,
                 ),
                 duration=cls.__limit_value(
                     base_params.duration + rate * base_params.duration_grad,
