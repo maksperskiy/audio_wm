@@ -1,8 +1,8 @@
 """empty message
 
-Revision ID: b3bf5ff3b523
+Revision ID: b9f5bc743004
 Revises: 
-Create Date: 2023-04-14 10:50:33.675741
+Create Date: 2023-04-17 11:02:32.074317
 
 """
 from alembic import op
@@ -10,7 +10,7 @@ import sqlalchemy as sa
 
 
 # revision identifiers, used by Alembic.
-revision = 'b3bf5ff3b523'
+revision = 'b9f5bc743004'
 down_revision = None
 branch_labels = None
 depends_on = None
@@ -22,15 +22,15 @@ def upgrade() -> None:
     sa.Column('step_number', sa.Integer(), nullable=False),
     sa.Column('label', sa.String(length=255), nullable=False),
     sa.Column('param_number', sa.Integer(), nullable=True),
-    sa.Column('freq_bottom', sa.Numeric(), nullable=False),
-    sa.Column('freq_top', sa.Numeric(), nullable=False),
-    sa.Column('duration', sa.Numeric(), nullable=False),
+    sa.Column('freq_bottom', sa.Integer(), nullable=False),
+    sa.Column('freq_top', sa.Integer(), nullable=False),
+    sa.Column('duration', sa.Integer(), nullable=False),
     sa.Column('freq_bottom_grad', sa.Numeric(), nullable=True),
     sa.Column('freq_top_grad', sa.Numeric(), nullable=True),
     sa.Column('duration_grad', sa.Numeric(), nullable=True),
-    sa.Column('freq_bottom_step', sa.Numeric(), nullable=False),
-    sa.Column('freq_top_step', sa.Numeric(), nullable=False),
-    sa.Column('duration_step', sa.Numeric(), nullable=False),
+    sa.Column('freq_bottom_step', sa.Integer(), nullable=False),
+    sa.Column('freq_top_step', sa.Integer(), nullable=False),
+    sa.Column('duration_step', sa.Integer(), nullable=False),
     sa.Column('expert_score', sa.Numeric(), nullable=True),
     sa.Column('sound_noise_ratio', sa.Numeric(), nullable=True),
     sa.Column('success_ratio', sa.Numeric(), nullable=True),

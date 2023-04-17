@@ -5,6 +5,8 @@ import os
 from scipy.io import wavfile
 import random
 
+from app.optimizer_api.exceptions import NotFoundException
+
 
 class FileRepository:
     @classmethod
@@ -13,9 +15,10 @@ class FileRepository:
         with open("/app/optimizer_api/api/handlers/audio/classes_tree.csv", newline="") as csvfile:
             reader = csv.DictReader(csvfile)
             for row in reader:
-                labels.append(row["5"] or row["4"] or row["3"] or row["2"] or row["1"])
+                for i in range(6):
+                    labels.append(row[f"{i}"])
 
-        return labels
+        return list(sorted(set(labels)))
 
     @classmethod
     async def get_random_audio(cls, label: str = None) -> Union[np.ndarray, int]:
@@ -29,6 +32,9 @@ class FileRepository:
 
         if label:
             files = list(filter(lambda x: label in x, files))
+
+        if not files:
+            raise NotFoundException
 
         file_path = random.choice(files)
 

@@ -1,4 +1,5 @@
 import numpy as np
+import math
 from scipy.fft import rfft, rfftfreq, irfft, fft, ifft, dct, fftfreq
 
 
@@ -8,6 +9,7 @@ class Extractor:
         P = 3
         # Берем файл и разбиваем его на фрагметы длиной N
         self.N = 100000
+        self.N = 10000
 
         # Увеличиваем длину сообщения на 2 (длина CRC)
         self.P = P + 2
@@ -49,6 +51,9 @@ class Extractor:
             ind = bfi + b * j
             t1 = d[ind : ind + mid]
             t2 = d[ind + mid : ind + b]
+            if t1.size == 0 or t2.size == 0:
+                res = res
+                continue
             m1 = np.max(np.abs(t1))
             m2 = np.max(np.abs(t2))
             bit = 1 if m1 < m2 else 0
@@ -74,7 +79,7 @@ class Extractor:
         res = []
         message = 0
         success_ratio = 0
-        for i in range(0, int(len(data) / self.N + 1)):
+        for i in range(0, math.ceil(len(data) / self.N)):
             fr = int(i * self.N) + self.Shift
             to = min(int((i + 1) * self.N) + self.Shift, len(data))
             dt = np.copy(data[fr:to])
@@ -91,7 +96,7 @@ class Extractor:
             if message != 0 and crc == 1 and message != mes:
                 print("Wrong message!!!")
         if count and success:
-            success_ratio = 100 * success / count
+            success_ratio = success / count
         return message, success_ratio
 
     def process(self, data, samplerate):

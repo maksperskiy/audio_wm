@@ -12,21 +12,28 @@ let result;
 const getButton = document.querySelector('#get-sound');
 const playOrigButton = document.querySelector('#play-original');
 const palyInjectedButton = document.querySelector('#play-injected');
+const estimateButton = document.querySelector('#estimate');
 
 
-let message = document.getElementById('message');
-let eMessage = document.getElementById('extracted-message');
-let snRatio = document.getElementById('sound-noise-ratio');
-let sRatio = document.getElementById('success-ratio');
+let messageEl = document.getElementById('message');
+let eMessageEl = document.getElementById('extracted-message');
+let snRatieEl = document.getElementById('sound-noise-ratio');
+let sRatieEl = document.getElementById('success-ratio');
 
+let message;
+let eMessage;
+let snRatio;
+let sRatio;
+
+let label = "Music";
 
 const play = (sound, rate) => {
     let channels = 1;
-    
+
     if (typeof sound[0] !== 'number') {
         channels = 2;
     }
-    
+
     let myArrayBuffer = audioCtx.createBuffer(channels, sound.length, rate);
 
     for (let channel = 0; channel < channels; channel++) {
@@ -45,7 +52,7 @@ const play = (sound, rate) => {
     let source = audioCtx.createBufferSource();
     source.buffer = myArrayBuffer;
     source.connect(audioCtx.destination);
-    
+
     source.start();
 
     source.onended = () => {
@@ -58,16 +65,19 @@ getButton.onclick = function () {
         init();
     }
 
-    let label = "Music";
     fetch("http://localhost:8081/api/v1/audio?label=" + label).then(function (response) {
         return response.json();
     }).then(function (data) {
         console.log(data);
         result = data;
-        message.innerHTML = data.message;
-        eMessage.innerHTML = data.extractedMessage;
-        snRatio.innerHTML = data.soundNoiseRatio;
-        sRatio.innerHTML = data.successRatio;
+        messageEl.innerHTML = data.message;
+        eMessageEl.innerHTML = data.extractedMessage;
+        snRatieEl.innerHTML = data.soundNoiseRatio;
+        sRatieEl.innerHTML = data.successRatio*100;
+        message = data.message;
+        eMessage = data.extractedMessage;
+        snRatio = data.soundNoiseRatio;
+        sRatio = data.successRatio;
     }).catch(function (err) {
         console.log('Fetch Error :-S', err);
     });
@@ -86,4 +96,28 @@ palyInjectedButton.onclick = function () {
     }
 
     play(result.injectedSoundArray, result.samplerate);
+}
+
+
+estimateButton.onclick = () => {
+    let value = document.querySelector('input[name="score"]:checked').value;
+
+    request_body = {
+        label: label,
+        expertScore: value,
+        soundNoiseRatio: snRatio,
+        successRatio: sRatio
+    }
+
+    fetch("http://localhost:8081/api/v1/audio/estimate/", {
+        method: "post",
+        headers: {
+            'Accept': 'application/json',
+            'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(request_body)
+    })
+        .then((response) => {
+
+        });
 }

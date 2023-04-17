@@ -6,7 +6,7 @@ from scipy.fft import rfft, rfftfreq, irfft, fft, ifft, dct, fftfreq, idct
 class Injector:
     def __init__(self, message=0x123456, bottom_freq=1750, top_freq=8500, duration=20):
         # Встраиваемое сообщение
-        DWM = message  # 0001 0010 0011 0100 0101 0110
+        DWM = message
         # Число байт в сообщении
         P = (message.bit_length() + 7) // 8
         # Считаем контрольный байт через функцию XOR
@@ -26,7 +26,7 @@ class Injector:
 
         # Берем файл и разбиваем его на фрагметы длиной N
         self.N = 100000
-        self.N = 42997
+        self.N = 10000
         # В каждом фрагменте делаем Дискретное косинусовое преобразование
         # В результате преобразования фильтруем частоты, которые задаем в настройках - т.е. наиболее значимые частоты
         # Оставшийся частотный диапазон делим на m частей, где m = размер диапазона / длину сообщения в битах
@@ -75,6 +75,8 @@ class Injector:
             # Первая версия алгоритма
             if bit == 0:
                 # ddd = dfr[ind : ind + mid]
+                if cp[mid:b].size == 0 or dfr[ind : ind + b].size == 0:
+                    return frame, 0
                 cp[0:mid] = 0
                 cp[mid:b] = (
                     cp[mid:b]
@@ -83,6 +85,8 @@ class Injector:
                 )
             else:
                 # ddd = dfr[ind + mid : ind + b]
+                if cp[0:mid].size == 0 or dfr[ind : ind + b].size == 0:
+                    return frame, 0
                 cp[mid:b] = 0
                 cp[0:mid] = (
                     cp[0:mid]
@@ -90,6 +94,9 @@ class Injector:
                     / np.max(np.abs(dfr[ind : ind + b]))
                 )
             # Проверяем результат встраивания
+            if cp[0:mid].size == 0 or cp[mid:b].size == 0:
+                return frame, 0
+
             m1 = np.max(np.abs(cp[0:mid]))
             m2 = np.max(np.abs(cp[mid:b]))
             bt = 1 if m1 > m2 else 0
@@ -130,7 +137,7 @@ class Injector:
     def process_data(self, data, samplerate):
         res = []
         count = 0
-        for i in range(0, int(len(data) / self.N + 1)):
+        for i in range(0, math.ceil(len(data) / self.N)):
             fr = int(i * self.N)
             to = min(int((i + 1) * self.N), len(data))
             dt = np.copy(data[fr:to])
@@ -156,7 +163,7 @@ class Injector:
 
             count = lcnt + rcnt
             max_count = 2 * len(data) // self.N
-            quality = (lcnt + rcnt) / (2 * len(data) // self.N)
+            quality = (lcnt + rcnt) / (2 * math.ceil(len(data) / self.N))
 
             # Сборка и нормализация результирующего сигнала
             marked_signal = np.column_stack((left, right))
@@ -165,9 +172,11 @@ class Injector:
             marked_signal, count = self.process_data(data, samplerate)
 
             max_count = 2 * len(data) // self.N
-            quality = (count) / (2 * len(data) // self.N)
+            quality = (count) / (2 * math.ceil(len(data) / self.N))
 
-        normalized_signal = np.int16((marked_signal / marked_signal.max()) * 32767)
+        normalized_signal = np.int16(
+            (marked_signal / marked_signal.max()) * np.abs(data).max()
+        )
 
         # # Вычисляем шум
         noise = data[0 : len(marked_signal)] - marked_signal
@@ -181,8 +190,10 @@ class Injector:
         noise_power = math.sqrt(((noise / max_data) ** 2).sum())
 
         # # Вычисляем соотношение сигнал/шум
-        sound_noise_ratio = 10 * np.log10((signal_power / noise_power) ** 2)
-
+        if noise_power:
+            sound_noise_ratio = 10 * np.log10((signal_power / noise_power) ** 2)
+        else:
+            sound_noise_ratio = 0
         # plt.plot(noise[890500:892000])
         # plt.show()
 

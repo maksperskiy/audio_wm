@@ -30,7 +30,7 @@ class OptimizerRepository(BaseRepository):
     ) -> __model__:
         query = (
             select(cls.__model__)
-            .filter_by(param_name=label, param_number=None)
+            .filter_by(label=label, param_number=None)
             .order_by(cls.__model__.created_at.desc())
             .limit(1)
         )

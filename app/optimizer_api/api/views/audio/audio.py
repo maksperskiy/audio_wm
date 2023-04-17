@@ -20,7 +20,7 @@ async def get_sound(
 
 
 @router.get("/", response_model=SoundResponse)
-@in_session()
+@in_session(commit=True)
 async def get_sound(
     label: str = Query(None),
     audio_handler: AudioHandler = Depends(),
@@ -29,9 +29,9 @@ async def get_sound(
 
 
 @router.post("/estimate/")
-@in_session()
+@in_session(commit=True)
 async def get_sound(
     estimation: EstimationRequest,
     audio_handler: AudioHandler = Depends(),
 ):
-    await audio_handler.estimate(estimation)
+    await audio_handler.optimize(estimation)
