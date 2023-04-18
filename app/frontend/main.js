@@ -1,7 +1,8 @@
+let backend_url = "http://localhost:8081"
+
 let AudioContext = window.AudioContext || window.webkitAudioContext;
 let audioCtx;
 
-// Stereo
 
 function init() {
     audioCtx = new AudioContext();
@@ -16,14 +17,14 @@ const estimateButton = document.querySelector('#estimate');
 
 
 let messageEl = document.getElementById('message');
-let eMessageEl = document.getElementById('extracted-message');
 let snRatieEl = document.getElementById('sound-noise-ratio');
-let sRatieEl = document.getElementById('success-ratio');
 
 let message;
 let eMessage;
 let snRatio;
 let sRatio;
+
+let listened = 0;
 
 let label = "Music";
 
@@ -64,20 +65,31 @@ getButton.onclick = function () {
     if (!audioCtx) {
         init();
     }
+    estimateButton.disabled = true;
+    playOrigButton.disabled = true;
+    palyInjectedButton.disabled = true;
+    listened = 0;
 
-    fetch("http://localhost:8081/api/v1/audio?label=" + label).then(function (response) {
+    fetch(backend_url + "/api/v1/audio?label=" + label).then(function (response) {
         return response.json();
     }).then(function (data) {
         console.log(data);
         result = data;
-        messageEl.innerHTML = data.message;
-        eMessageEl.innerHTML = data.extractedMessage;
-        snRatieEl.innerHTML = data.soundNoiseRatio;
-        sRatieEl.innerHTML = data.successRatio*100;
+
+        messageEl.innerHTML = data.message.toString() + (data.successRatio ? " = " : " ≠ ") + data.extractedMessage.toString();
+        if (data.successRatio) {
+            messageEl.className = "badge badge-success badge-pill";
+        } else {
+            messageEl.className = "badge badge-danger badge-pill";
+        }
+        snRatieEl.innerHTML = Math.round(data.soundNoiseRatio * 100) / 100;
         message = data.message;
         eMessage = data.extractedMessage;
         snRatio = data.soundNoiseRatio;
         sRatio = data.successRatio;
+
+        playOrigButton.disabled = false;
+        palyInjectedButton.disabled = false;
     }).catch(function (err) {
         console.log('Fetch Error :-S', err);
     });
@@ -88,6 +100,10 @@ playOrigButton.onclick = function () {
         return;
     }
     play(result.soundArray, result.samplerate);
+    listened += 1;
+    if (listened == 2) {
+        estimateButton.disabled = false;
+    }
 }
 
 palyInjectedButton.onclick = function () {
@@ -96,6 +112,10 @@ palyInjectedButton.onclick = function () {
     }
 
     play(result.injectedSoundArray, result.samplerate);
+    listened += 1;
+    if (listened == 2) {
+        estimateButton.disabled = false;
+    }
 }
 
 
@@ -109,7 +129,7 @@ estimateButton.onclick = () => {
         successRatio: sRatio
     }
 
-    fetch("http://localhost:8081/api/v1/audio/estimate/", {
+    fetch(backend_url + "/api/v1/audio/estimate/", {
         method: "post",
         headers: {
             'Accept': 'application/json',
@@ -120,4 +140,5 @@ estimateButton.onclick = () => {
         .then((response) => {
 
         });
+    estimateButton.disabled = true;
 }

@@ -8,7 +8,7 @@ const changeLabel = () => {
 document.getElementById("label").addEventListener('change', changeLabel);
 
 
-fetch("http://localhost:8081/api/v1/audio/labels/").then(function (response) {
+fetch(backend_url + "/api/v1/audio/labels/").then(function (response) {
     return response.json();
 }).then(function (data) {
     console.log(data);

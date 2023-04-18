@@ -34,5 +34,21 @@ services:
     volumes:
       - "./app/optimizer_api:/app/optimizer_api"
 
+  optimizer_frontend:
+    image: optimizer_frontend
+    container_name: optimizer_frontend
+    profiles:
+      - optimizer
+    build:
+      context: .
+      dockerfile: docker/frontend/Dockerfile
+    depends_on:
+      - optimizer
+    restart: always
+    ports:
+      - "8082:80"
+    volumes:
+      - "./app/frontend:/usr/share/nginx/html"
+
 volumes:
   postgres-db-volume:
