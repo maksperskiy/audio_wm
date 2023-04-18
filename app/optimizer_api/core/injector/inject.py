@@ -166,20 +166,26 @@ class Injector:
             quality = (lcnt + rcnt) / (2 * math.ceil(len(data) / self.N))
 
             # Сборка и нормализация результирующего сигнала
-            marked_signal = np.column_stack((left, right))
 
+            left_normalized_signal = np.int16(
+                (left / left.max()) * np.abs(data[:, 0]).max()
+            )
+            rigth_normalized_signal = np.int16(
+                (right / right.max()) * np.abs(data[:, 1]).max()
+            )
+            normalized_signal = np.column_stack((left_normalized_signal, rigth_normalized_signal))
         else:
             marked_signal, count = self.process_data(data, samplerate)
 
             max_count = 2 * len(data) // self.N
             quality = (count) / (2 * math.ceil(len(data) / self.N))
 
-        normalized_signal = np.int16(
-            (marked_signal / marked_signal.max()) * np.abs(data).max()
-        )
+            normalized_signal = np.int16(
+                (marked_signal / marked_signal.max()) * np.abs(data).max()
+            )
 
         # # Вычисляем шум
-        noise = data[0 : len(marked_signal)] - marked_signal
+        noise = data[0 : len(normalized_signal)] - normalized_signal
 
         # # Вычисляем соотношение сигнал/шум
 

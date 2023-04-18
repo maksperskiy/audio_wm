@@ -200,28 +200,32 @@ class AudioHandler:
             # create new base with updated params, steps, empty param_number, reward and grads
             # reset steps if step_number more that xx
 
-            if last_params.step_number % 28 == 4 and last_params.step_number // 84 >= 1:
+            if last_params.step_number % 28 == 3:
                 new_freq_bottom_step = 100
                 new_freq_top_step = 100
                 new_duration_step = 100
             else:
                 new_freq_bottom_step = (
                     base_params.freq_bottom_step / 2
-                    if base_params.freq_bottom_grad < 0
+                    if base_params.freq_bottom_grad <= 0
                     else base_params.freq_bottom_step
                 )
                 new_freq_top_step = (
                     base_params.freq_top_step / 2
-                    if base_params.freq_top_grad < 0
+                    if base_params.freq_top_grad <= 0
                     else base_params.freq_top_step
                 )
                 new_duration_step = (
                     base_params.duration_step / 2
-                    if base_params.duration_grad < 0
+                    if base_params.duration_grad <= 0
                     else base_params.duration_step
                 )
 
-            rate = 10000
+            if last_params.step_number // 84 >= 1:
+                rate = 1000
+            else:
+                rate = 10000
+
             new_params = ParamsModel(
                 step_number=last_params.step_number + 1,
                 label=estimation.label,
