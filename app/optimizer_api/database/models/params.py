@@ -9,6 +9,7 @@ class ParamsModel(Base):
     __tablename__ = "params_history"
 
     step_number = Column(Integer, primary_key=True)
+    experiment_number = Column(Integer, primary_key=True)
     label = Column(String(255), primary_key=True)
 
     param_number = Column(Integer)

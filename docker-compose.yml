@@ -50,5 +50,18 @@ services:
     volumes:
       - "./app/frontend:/usr/share/nginx/html"
 
+  classifier_serving:
+    image: tensorflow/serving
+    container_name: classifier_serving
+    profiles:
+      - classifier
+    restart: always
+    environment:
+      - MODEL_NAME=classifier
+    ports:
+      - "8501:8501"
+    volumes:
+      - "./models/classifier:/models/classifier"
+
 volumes:
   postgres-db-volume:

@@ -103,6 +103,7 @@ class AudioHandler:
             params = {
                 "label": base_params.label,
                 "step_number": base_params.step_number,
+                "experiment_number": base_params.experiment_number,
             }
             updates = {
                 "expert_score": estimation.expert_score,
@@ -114,6 +115,7 @@ class AudioHandler:
             new_params = ParamsModel(
                 step_number=last_params.step_number + 1,
                 label=estimation.label,
+                experiment_number=last_params.experiment_number,
                 param_number=0,
                 freq_bottom=cls.__limit_value(
                     base_params.freq_bottom + base_params.freq_bottom_step,
@@ -134,6 +136,7 @@ class AudioHandler:
             params = {
                 "label": base_params.label,
                 "step_number": base_params.step_number,
+                "experiment_number": base_params.experiment_number,
             }
             updates = {
                 "freq_bottom_grad": gradient,
@@ -143,6 +146,7 @@ class AudioHandler:
             new_params = ParamsModel(
                 step_number=last_params.step_number + 1,
                 label=estimation.label,
+                experiment_number=last_params.experiment_number,
                 param_number=1,
                 freq_bottom=base_params.freq_bottom,
                 freq_top=cls.__limit_value(
@@ -163,6 +167,7 @@ class AudioHandler:
             params = {
                 "label": base_params.label,
                 "step_number": base_params.step_number,
+                "experiment_number": base_params.experiment_number,
             }
             updates = {
                 "freq_top_grad": gradient,
@@ -172,12 +177,13 @@ class AudioHandler:
             new_params = ParamsModel(
                 step_number=last_params.step_number + 1,
                 label=estimation.label,
+                experiment_number=last_params.experiment_number,
                 param_number=2,
                 freq_bottom=base_params.freq_bottom,
                 freq_top=base_params.freq_top,
                 duration=cls.__limit_value(
                     base_params.duration + base_params.duration_step,
-                    min_value=10,
+                    min_value=20,
                     max_value=975,
                 ),
                 freq_bottom_step=base_params.freq_bottom_step,
@@ -192,6 +198,7 @@ class AudioHandler:
             params = {
                 "label": base_params.label,
                 "step_number": base_params.step_number,
+                "experiment_number": base_params.experiment_number,
             }
             updates = {
                 "duration_grad": gradient,
@@ -200,7 +207,11 @@ class AudioHandler:
             # create new base with updated params, steps, empty param_number, reward and grads
             # reset steps if step_number more that xx
 
-            if last_params.step_number % 28 == 3:
+            if (
+                base_params.freq_bottom_step <= 1
+                and base_params.freq_top_step <= 1
+                and base_params.duration_step <= 1
+            ):
                 new_freq_bottom_step = 100
                 new_freq_top_step = 100
                 new_duration_step = 100
@@ -221,7 +232,11 @@ class AudioHandler:
                     else base_params.duration_step
                 )
 
-            if last_params.step_number // 84 >= 1:
+            if last_params.step_number // 84 >= 1 or (
+                base_params.freq_bottom_step <= 1
+                and base_params.freq_top_step <= 1
+                and base_params.duration_step <= 1
+            ):
                 rate = 1000
             else:
                 rate = 10000
@@ -229,6 +244,7 @@ class AudioHandler:
             new_params = ParamsModel(
                 step_number=last_params.step_number + 1,
                 label=estimation.label,
+                experiment_number=last_params.experiment_number,
                 freq_bottom=cls.__limit_value(
                     base_params.freq_bottom + rate * base_params.freq_bottom_grad,
                     max_value=base_params.freq_top - 500,
@@ -239,7 +255,7 @@ class AudioHandler:
                 ),
                 duration=cls.__limit_value(
                     base_params.duration + rate * base_params.duration_grad,
-                    min_value=10,
+                    min_value=20,
                     max_value=975,
                 ),
                 freq_bottom_step=new_freq_bottom_step,
@@ -247,3 +263,12 @@ class AudioHandler:
                 duration_step=new_duration_step,
             )
             await OptimizerRepository.create(new_params)
+
+    @staticmethod
+    async def reset_label(label: str) -> None:
+        last_params = await OptimizerRepository.get_last_params(label)
+        if last_params:
+            print(last_params.experiment_number)
+            await OptimizerRepository.intialize_params(
+                label=label, experiment_number=last_params.experiment_number + 1
+            )

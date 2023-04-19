@@ -15,9 +15,16 @@ const playOrigButton = document.querySelector('#play-original');
 const palyInjectedButton = document.querySelector('#play-injected');
 const estimateButton = document.querySelector('#estimate');
 
+const getButtonSpinner = document.querySelector('#get-sound-spinner');
+
 
 let messageEl = document.getElementById('message');
 let snRatieEl = document.getElementById('sound-noise-ratio');
+
+let resetInputEl = document.getElementById('reset-input');
+let resetButtonEl = document.getElementById("reset-button");
+let resetModalButtonEl = document.getElementById("reset-modal-button");
+
 
 let message;
 let eMessage;
@@ -26,7 +33,7 @@ let sRatio;
 
 let listened = 0;
 
-let label = "Music";
+let label;
 
 const play = (sound, rate) => {
     let channels = 1;
@@ -68,9 +75,11 @@ getButton.onclick = function () {
     estimateButton.disabled = true;
     playOrigButton.disabled = true;
     palyInjectedButton.disabled = true;
+    getButton.disabled = true;
+    getButtonSpinner.style.display = 'inline-block';
     listened = 0;
 
-    fetch(backend_url + "/api/v1/audio?label=" + label).then(function (response) {
+    fetch(backend_url + "/api/v1/audio/?label=" + label).then(function (response) {
         return response.json();
     }).then(function (data) {
         console.log(data);
@@ -90,8 +99,13 @@ getButton.onclick = function () {
 
         playOrigButton.disabled = false;
         palyInjectedButton.disabled = false;
+
+        getButton.disabled = false;
+        getButtonSpinner.style.display = 'none';
     }).catch(function (err) {
         console.log('Fetch Error :-S', err);
+        getButton.disabled = false;
+        getButtonSpinner.style.display = 'none';
     });
 }
 

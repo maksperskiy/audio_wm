@@ -41,6 +41,7 @@ class OptimizerRepository(BaseRepository):
     async def intialize_params(
         cls,
         label,
+        experiment_number=0,
         freq_bottom=None,
         freq_top=None,
         duration=None,
@@ -51,6 +52,7 @@ class OptimizerRepository(BaseRepository):
         params = ParamsModel(
             step_number=0,
             label=label,
+            experiment_number=experiment_number,
             freq_bottom=freq_bottom or 1750,
             freq_top=freq_top or 8500,
             duration=duration or 20,

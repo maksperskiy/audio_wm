@@ -11,9 +11,11 @@ labelEl.addEventListener('change', changeLabel);
 function success() {
     if (labelEl.value === "") {
         getButton.disabled = true;
+        resetModalButtonEl.disabled = true;
         labelEl.classList.add("is-invalid");
     } else {
         getButton.disabled = false;
+        resetModalButtonEl.disabled = false;
         labelEl.classList.remove("is-invalid");
     }
 }

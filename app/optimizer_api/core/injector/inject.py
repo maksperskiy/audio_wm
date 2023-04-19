@@ -48,6 +48,10 @@ class Injector:
     ):
         # Ищем максимум
         pos = np.argmax(np.abs(frame))
+
+        if np.abs(frame).max() > 20000:
+            return frame, 0
+        
         # Берем интервал = duration мс
         l = duration * samplerate // 1000
         pos_f = pos - l // 2

@@ -35,3 +35,12 @@ async def get_sound(
     audio_handler: AudioHandler = Depends(),
 ):
     await audio_handler.optimize(estimation)
+
+
+@router.get("/reset/")
+@in_session(commit=True)
+async def get_sound(
+    label: str = Query(None),
+    audio_handler: AudioHandler = Depends(),
+):
+    await audio_handler.reset_label(label)

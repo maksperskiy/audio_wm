@@ -21,6 +21,7 @@ def upgrade() -> None:
     op.create_table('params_history',
     sa.Column('step_number', sa.Integer(), nullable=False),
     sa.Column('label', sa.String(length=255), nullable=False),
+    sa.Column("experiment_number", sa.Integer(), nullable=False),
     sa.Column('param_number', sa.Integer(), nullable=True),
     sa.Column('freq_bottom', sa.Integer(), nullable=False),
     sa.Column('freq_top', sa.Integer(), nullable=False),
@@ -35,7 +36,7 @@ def upgrade() -> None:
     sa.Column('sound_noise_ratio', sa.Numeric(), nullable=True),
     sa.Column('success_ratio', sa.Numeric(), nullable=True),
     sa.Column('created_at', sa.DateTime(), server_default=sa.text('now()'), nullable=True),
-    sa.PrimaryKeyConstraint('step_number', 'label')
+    sa.PrimaryKeyConstraint('label', 'experiment_number', 'step_number')
     )
     # ### end Alembic commands ###
 
