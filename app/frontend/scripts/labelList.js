@@ -1,11 +1,23 @@
 let labelListEl = document.getElementById('labelList');
-
+let labelEl = document.getElementById("label");
 
 const changeLabel = () => {
-    label = document.getElementById('label').value;
+    label = labelEl.value;
 }
 
-document.getElementById("label").addEventListener('change', changeLabel);
+labelEl.addEventListener('change', changeLabel);
+
+
+function success() {
+    if (labelEl.value === "") {
+        getButton.disabled = true;
+        labelEl.classList.add("is-invalid");
+    } else {
+        getButton.disabled = false;
+        labelEl.classList.remove("is-invalid");
+    }
+}
+success();
 
 
 fetch(backend_url + "/api/v1/audio/labels/").then(function (response) {
