@@ -2,12 +2,15 @@ from typing import List
 from sqlalchemy.future import select
 from sqlalchemy.orm import selectinload
 
-from app.optimizer_api.database.models import ParamsModel
+from app.optimizer_api.database.models import ParamsHistoryModel
 from app.optimizer_api.database.repositories.base import BaseRepository
+
+from app.optimizer_api.api.middlewares import db_optimizer_session
 
 
 class OptimizerRepository(BaseRepository):
-    __model__ = ParamsModel
+    __model__ = ParamsHistoryModel
+    db_session = db_optimizer_session
 
     @classmethod
     async def get_last_params(
@@ -49,7 +52,7 @@ class OptimizerRepository(BaseRepository):
         freq_top_step=None,
         duration_step=None,
     ):
-        params = ParamsModel(
+        params = ParamsHistoryModel(
             step_number=0,
             label=label,
             experiment_number=experiment_number,

@@ -11,7 +11,7 @@ services:
       POSTGRES_PASSWORD: ${OPTIMIZER_POSTGRES_PASSWORD}
       POSTGRES_MULTIPLE_DATABASES: ${OPTIMIZER_POSTGRES_DATABASE}
     volumes:
-      - postgres-db-volume:/var/lib/postgresql/data
+      - postgres-optimizer-db-volume:/var/lib/postgresql/data
     ports:
       - "15432:5432"
     restart: always
@@ -54,7 +54,7 @@ services:
     image: tensorflow/serving
     container_name: classifier_serving
     profiles:
-      - classifier
+      - ai
     restart: always
     environment:
       - MODEL_NAME=classifier
@@ -63,5 +63,22 @@ services:
     volumes:
       - "./models/classifier:/models/classifier"
 
+
+
+  postgres_ai:
+    image: postgres:13
+    profiles:
+      - ai
+    environment:
+      POSTGRES_USER: ${OPTIMIZER_POSTGRES_USER}
+      POSTGRES_PASSWORD: ${OPTIMIZER_POSTGRES_PASSWORD}
+      POSTGRES_MULTIPLE_DATABASES: ${OPTIMIZER_POSTGRES_DATABASE}
+    volumes:
+      - postgres-ai-db-volume:/var/lib/postgresql/data
+    ports:
+      - "15433:5432"
+    restart: always
+
 volumes:
-  postgres-db-volume:
+  postgres-optimizer-db-volume:
+  postgres-ai-db-volume:

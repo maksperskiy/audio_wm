@@ -1,9 +1,7 @@
-from app.optimizer_api.exceptions import NotFoundException, BadRequestException
-
-from app.optimizer_api.database.repositories import FileRepository
+from app.optimizer_api.database.audio_provider import FileProvider
 from app.optimizer_api.database.repositories import OptimizerRepository
 
-from app.optimizer_api.database.models import ParamsModel
+from app.optimizer_api.database.models import ParamsHistoryModel
 
 from app.optimizer_api.schemas.requests.audio import EstimationRequest
 from app.optimizer_api.schemas.responses.audio import SoundResponse, LabelsResponse
@@ -16,13 +14,13 @@ import numpy as np
 class AudioHandler:
     @staticmethod
     async def get_labels():
-        labels = await FileRepository.get_labels()
+        labels = await FileProvider.get_labels()
 
         return LabelsResponse(labels=labels)
 
     @staticmethod
     async def get_audio(label: str):
-        sound, samplerate = await FileRepository.get_random_audio(label)
+        sound, samplerate = await FileProvider.get_random_audio(label)
         params = await OptimizerRepository.get_last_params(label)
 
         if not params:
@@ -112,7 +110,7 @@ class AudioHandler:
             }
             await OptimizerRepository.update(updates, **params)
 
-            new_params = ParamsModel(
+            new_params = ParamsHistoryModel(
                 step_number=last_params.step_number + 1,
                 label=estimation.label,
                 experiment_number=last_params.experiment_number,
@@ -143,7 +141,7 @@ class AudioHandler:
             }
             await OptimizerRepository.update(updates, **params)
 
-            new_params = ParamsModel(
+            new_params = ParamsHistoryModel(
                 step_number=last_params.step_number + 1,
                 label=estimation.label,
                 experiment_number=last_params.experiment_number,
@@ -174,7 +172,7 @@ class AudioHandler:
             }
             await OptimizerRepository.update(updates, **params)
 
-            new_params = ParamsModel(
+            new_params = ParamsHistoryModel(
                 step_number=last_params.step_number + 1,
                 label=estimation.label,
                 experiment_number=last_params.experiment_number,
@@ -241,7 +239,7 @@ class AudioHandler:
             else:
                 rate = 10000
 
-            new_params = ParamsModel(
+            new_params = ParamsHistoryModel(
                 step_number=last_params.step_number + 1,
                 label=estimation.label,
                 experiment_number=last_params.experiment_number,

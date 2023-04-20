@@ -7,12 +7,16 @@ import random
 
 from app.optimizer_api.exceptions import NotFoundException
 
+from app.optimizer_api.database.audio_provider.abstract_provider import AbstractProvider
 
-class FileRepository:
+
+class FileProvider(AbstractProvider):
     @classmethod
     async def get_labels(cls) -> List[str]:
         labels = []
-        with open("/app/optimizer_api/api/handlers/audio/classes_tree.csv", newline="") as csvfile:
+        with open(
+            "/app/optimizer_api/api/handlers/audio/classes_tree.csv", newline=""
+        ) as csvfile:
             reader = csv.DictReader(csvfile)
             for row in reader:
                 for i in range(6):
