@@ -1,4 +1,4 @@
-from sqlalchemy import Column, DateTime, Numeric, Integer, String, func
+from sqlalchemy import Column, DateTime, Numeric, Integer, String, BIGINT, func
 
 from sqlalchemy.orm import declarative_base
 
@@ -11,6 +11,8 @@ class ParamsHistoryModel(Base):
     step_number = Column(Integer, primary_key=True)
     experiment_number = Column(Integer, primary_key=True)
     label = Column(String(255), primary_key=True)
+
+    message = Column(BIGINT)
 
     param_number = Column(Integer)
 

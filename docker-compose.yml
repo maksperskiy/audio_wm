@@ -63,8 +63,6 @@ services:
     volumes:
       - "./models/classifier:/models/classifier"
 
-
-
   postgres_ai:
     image: postgres:13
     profiles:

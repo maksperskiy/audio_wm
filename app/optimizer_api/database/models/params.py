@@ -1,4 +1,4 @@
-from sqlalchemy import Column, DateTime, Numeric, Integer, String, func
+from sqlalchemy import Column, DateTime, Numeric, Integer, String, BIGINT, func
 
 from sqlalchemy.orm import declarative_base
 
@@ -9,6 +9,8 @@ class ParamsModel(Base):
     __tablename__ = "params"
 
     label = Column(String(255), primary_key=True)
+
+    message = Column(BIGINT)
 
     freq_bottom = Column(Integer, nullable=False)
     freq_top = Column(Integer, nullable=False)
