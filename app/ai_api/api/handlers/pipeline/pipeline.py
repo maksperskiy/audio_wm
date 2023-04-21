@@ -1,5 +1,6 @@
 from app.ai_api.database.repositories import AIRepository
 from app.ai_api.exceptions.not_found import NotFoundException
+from app.ai_api.database.models import ParamsModel
 
 from app.ai_api.schemas.requests.audio import AudioRequest
 from app.ai_api.schemas.responses.params import ParamsResponse
@@ -7,6 +8,8 @@ from app.ai_api.schemas.responses.params import ParamsResponse
 import numpy as np
 import scipy.signal as sps
 from spleeter.separator import Separator
+
+from datetime import datetime
 
 import requests
 import json
@@ -61,5 +64,6 @@ class PipelineHandler:
         
         params = await AIRepository.get(label=label)
         if not params:
-            raise NotFoundException(detail="Params for classified label were not found.")
+            params = ParamsResponse(label=label, freq_bottom=1750, freq_top=8500, duration=20)
+            # raise NotFoundException(detail="Params for classified label were not found.")
         return params
