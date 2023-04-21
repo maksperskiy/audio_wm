@@ -50,6 +50,25 @@ services:
     volumes:
       - "./app/frontend:/usr/share/nginx/html"
 
+
+  ai:
+    image: ai
+    container_name: ai
+    profiles:
+      - ai
+    build:
+      context: .
+      dockerfile: docker/ai/Dockerfile
+    depends_on:
+      - postgres_ai
+    env_file:
+      - .env
+    restart: always
+    ports:
+      - "8083:80"
+    volumes:
+      - "./app/ai_api:/app/ai_api"
+
   classifier_serving:
     image: tensorflow/serving
     container_name: classifier_serving

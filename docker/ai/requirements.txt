@@ -1,0 +1,11 @@
+numpy
+matplotlib
+fastapi
+uvicorn
+psycopg-binary
+SQLAlchemy
+asyncpg
+scipy
+requests
+spleeter
+resampy
