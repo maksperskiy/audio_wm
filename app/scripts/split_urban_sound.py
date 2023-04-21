@@ -1,11 +1,11 @@
-import numpy as np
-from scipy.io import wavfile
-import os
 import json
-import requests
-import pandas as pd
-import librosa
+import os
 
+import librosa
+import numpy as np
+import pandas as pd
+import requests
+from scipy.io import wavfile
 
 labels_df = pd.read_csv("./models/classifier/00000002/assets/yamnet_class_map.csv")
 labels = {i: label for i, label in enumerate(labels_df["display_name"].tolist())}

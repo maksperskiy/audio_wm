@@ -1,9 +1,8 @@
-from sqlalchemy import Column, DateTime, Numeric, Integer, String, BIGINT, func
-
+from sqlalchemy import BIGINT, Column, DateTime, Integer, Numeric, String, func
 from sqlalchemy.orm import declarative_base
 
-
 Base = declarative_base()
+
 
 class ParamsHistoryModel(Base):
     __tablename__ = "params_history"

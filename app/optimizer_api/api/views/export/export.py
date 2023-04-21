@@ -1,10 +1,9 @@
 from typing import List
+
 from fastapi import APIRouter, Depends, Query
 
-from app.optimizer_api.api.middlewares import in_session
-
 from app.optimizer_api.api.handlers.export import ExportHandler
-
+from app.optimizer_api.api.middlewares import in_session
 
 router = APIRouter()
 

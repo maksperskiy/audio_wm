@@ -1,6 +1,7 @@
-import numpy as np
 import math
-from scipy.fft import rfft, rfftfreq, irfft, fft, ifft, dct, fftfreq, idct
+
+import numpy as np
+from scipy.fft import dct, fft, fftfreq, idct, ifft, irfft, rfft, rfftfreq
 
 
 class Injector:
@@ -51,7 +52,7 @@ class Injector:
 
         if np.abs(frame).max() > 20000:
             return frame, 0
-        
+
         # Берем интервал = duration мс
         l = duration * samplerate // 1000
         pos_f = pos - l // 2
@@ -177,7 +178,9 @@ class Injector:
             rigth_normalized_signal = np.int16(
                 (right / right.max()) * np.abs(data[:, 1]).max()
             )
-            normalized_signal = np.column_stack((left_normalized_signal, rigth_normalized_signal))
+            normalized_signal = np.column_stack(
+                (left_normalized_signal, rigth_normalized_signal)
+            )
         else:
             marked_signal, count = self.process_data(data, samplerate)
 

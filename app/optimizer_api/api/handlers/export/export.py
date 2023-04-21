@@ -1,9 +1,7 @@
 from typing import List
 
 from app.optimizer_api.database.models import ParamsModel
-
-from app.optimizer_api.database.repositories import OptimizerRepository
-from app.optimizer_api.database.repositories import AIRepository
+from app.optimizer_api.database.repositories import AIRepository, OptimizerRepository
 
 
 class ExportHandler:

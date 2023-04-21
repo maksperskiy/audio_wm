@@ -2,6 +2,7 @@ import functools
 from contextvars import ContextVar
 
 from sqlalchemy.ext.asyncio import AsyncSession
+
 from app.optimizer_api.database.core import async_session_factory
 
 db_optimizer_session: ContextVar[AsyncSession] = ContextVar("optimizer-db-session")

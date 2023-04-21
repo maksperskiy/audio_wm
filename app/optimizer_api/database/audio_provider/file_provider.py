@@ -1,13 +1,13 @@
-from typing import List, Union
 import csv
-import numpy as np
 import os
-from scipy.io import wavfile
 import random
+from typing import List, Union
 
-from app.optimizer_api.exceptions import NotFoundException
+import numpy as np
+from scipy.io import wavfile
 
 from app.optimizer_api.database.audio_provider.abstract_provider import AbstractProvider
+from app.optimizer_api.exceptions import NotFoundException
 
 
 class FileProvider(AbstractProvider):

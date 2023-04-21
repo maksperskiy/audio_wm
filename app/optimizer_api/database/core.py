@@ -3,8 +3,8 @@ from typing import Callable
 
 from sqlalchemy.ext.asyncio import AsyncSession, create_async_engine
 from sqlalchemy.orm import sessionmaker
-from app.optimizer_api.core import settings
 
+from app.optimizer_api.core import settings
 
 _async_optimizer_engine = create_async_engine(
     settings.DATABASE_OPTIMIZER_URI,

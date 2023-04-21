@@ -1,4 +1,4 @@
-from typing import List, Any
+from typing import Any, List
 
 from app.optimizer_api.schemas.responses.base import BaseResponse
 

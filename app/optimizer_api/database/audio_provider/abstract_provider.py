@@ -1,6 +1,6 @@
 from abc import ABCMeta, abstractclassmethod
-
 from typing import Union
+
 import numpy as np
 
 

@@ -1,4 +1,5 @@
 from typing import Optional
+
 from app.ai_api.schemas.responses.base import BaseResponse
 
 

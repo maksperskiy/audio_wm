@@ -1,8 +1,8 @@
 import gi
 
 gi.require_version("Gst", "1.0")
-from gi.repository import Gst, GObject
 import numpy as np
+from gi.repository import GObject, Gst
 
 Gst.init(None)
 
@@ -53,7 +53,3 @@ while True:
             break
 
 pipeline.set_state(Gst.State.NULL)
-
-
-
-

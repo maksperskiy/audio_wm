@@ -1,2 +1,2 @@
-from .inject import Injector
 from .extract import Extractor
+from .inject import Injector

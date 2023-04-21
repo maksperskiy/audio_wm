@@ -1,6 +1,7 @@
-import numpy as np
 import math
-from scipy.fft import rfft, rfftfreq, irfft, fft, ifft, dct, fftfreq
+
+import numpy as np
+from scipy.fft import dct, fft, fftfreq, ifft, irfft, rfft, rfftfreq
 
 
 class Extractor:
@@ -103,7 +104,7 @@ class Extractor:
         if len(data.shape) == 2:
             left = self.process_data(data[:, 0], samplerate)
             right = self.process_data(data[:, 1], samplerate)
-            return (left[0] or right[0], (left[1]+right[1])/2)
+            return (left[0] or right[0], (left[1] + right[1]) / 2)
         elif len(data.shape) == 1:
             return self.process_data(data, samplerate)
         else:

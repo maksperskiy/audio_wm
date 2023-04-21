@@ -1,12 +1,9 @@
 from fastapi import APIRouter, Depends
 
-from app.ai_api.api.middlewares import in_session
-
 from app.ai_api.api.handlers.pipeline import PipelineHandler
-
+from app.ai_api.api.middlewares import in_session
 from app.ai_api.schemas.requests.audio import AudioRequest
 from app.ai_api.schemas.responses.params import ParamsResponse
-
 
 router = APIRouter()
 

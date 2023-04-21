@@ -1,7 +1,9 @@
 from typing import List
+
 from sqlalchemy.future import select
 
 from app.ai_api.api.middlewares import db_session
+
 
 class BaseRepository:
     __model__ = None
@@ -36,7 +38,7 @@ class BaseRepository:
         db_session.get().add_all(entities)
         await cls.flush()
         return entities
-    
+
     @classmethod
     async def update(cls, updates: dict, **params) -> __model__:
         if not cls.__model__:

@@ -1,6 +1,7 @@
-import numpy as np
 import os
+
 import gi
+import numpy as np
 
 gi.require_version("Gst", "1.0")
 from gi.repository import Gst
@@ -24,10 +25,11 @@ sink = Gst.ElementFactory.make("autoaudiosink", "sink")
 pipeline.add(filesrc)
 pipeline.add(decode)
 pipeline.add(convert)
-pipeline.add(resample) 
+pipeline.add(resample)
 pipeline.add(sink)
 
 filesrc.link(decode)
+
 
 def on_pad_added(element, pad):
     # pad.link(sink_pad)
@@ -38,16 +40,10 @@ def on_pad_added(element, pad):
     print("Pad template:", pad.get_pad_template())
     print("Pad message type:", pad.get_property("message-type"))
 
+
 decode.connect("pad-added", on_pad_added, convert)
 convert.link(resample)
 resample.link(sink)
 pipeline.set_state(Gst.State.PLAYING)
 # pipeline.get_state(Gst.CLOCK_TIME_NONE)
 pipeline.set_state(Gst.State.NULL)
-
-
-
-
-
-
-

@@ -1,12 +1,9 @@
 from fastapi import APIRouter, Depends, Query
 
-from app.optimizer_api.api.middlewares import in_session
-
 from app.optimizer_api.api.handlers.audio import AudioHandler
-
+from app.optimizer_api.api.middlewares import in_session
 from app.optimizer_api.schemas.requests.audio import EstimationRequest
-from app.optimizer_api.schemas.responses.audio import SoundResponse, LabelsResponse
-
+from app.optimizer_api.schemas.responses.audio import LabelsResponse, SoundResponse
 
 router = APIRouter()
 

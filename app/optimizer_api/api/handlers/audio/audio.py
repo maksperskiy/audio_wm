@@ -1,14 +1,11 @@
-from app.optimizer_api.database.audio_provider import FileProvider
-from app.optimizer_api.database.repositories import OptimizerRepository
-
-from app.optimizer_api.database.models import ParamsHistoryModel
-
-from app.optimizer_api.schemas.requests.audio import EstimationRequest
-from app.optimizer_api.schemas.responses.audio import SoundResponse, LabelsResponse
-
-from app.optimizer_api.core.injector import Injector, Extractor
-
 import numpy as np
+
+from app.optimizer_api.core.injector import Extractor, Injector
+from app.optimizer_api.database.audio_provider import FileProvider
+from app.optimizer_api.database.models import ParamsHistoryModel
+from app.optimizer_api.database.repositories import OptimizerRepository
+from app.optimizer_api.schemas.requests.audio import EstimationRequest
+from app.optimizer_api.schemas.responses.audio import LabelsResponse, SoundResponse
 
 
 class AudioHandler:

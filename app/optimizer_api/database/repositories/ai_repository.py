@@ -1,11 +1,11 @@
 from typing import List
-from sqlalchemy.future import select
-from sqlalchemy import delete
 
-from app.optimizer_api.database.models import ParamsModel
-from app.optimizer_api.database.repositories.base import BaseRepository
+from sqlalchemy import delete
+from sqlalchemy.future import select
 
 from app.optimizer_api.api.middlewares import db_ai_session
+from app.optimizer_api.database.models import ParamsModel
+from app.optimizer_api.database.repositories.base import BaseRepository
 
 
 class AIRepository(BaseRepository):

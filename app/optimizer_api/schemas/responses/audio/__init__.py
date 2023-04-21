@@ -1,1 +1,1 @@
-from .audio import SoundResponse, LabelsResponse
+from .audio import LabelsResponse, SoundResponse

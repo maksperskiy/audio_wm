@@ -1,6 +1,7 @@
 import datetime
 
 from pydantic.main import BaseModel
+
 from app.optimizer_api.services.utils import to_camel_case
 
 

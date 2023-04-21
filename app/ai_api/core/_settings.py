@@ -1,6 +1,6 @@
 from typing import Optional
 
-from pydantic import BaseSettings, PostgresDsn, AnyHttpUrl
+from pydantic import AnyHttpUrl, BaseSettings, PostgresDsn
 
 
 class Settings(BaseSettings):

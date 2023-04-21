@@ -1,11 +1,11 @@
 from typing import List
+
 from sqlalchemy.future import select
 from sqlalchemy.orm import selectinload
 
+from app.optimizer_api.api.middlewares import db_optimizer_session
 from app.optimizer_api.database.models import ParamsHistoryModel
 from app.optimizer_api.database.repositories.base import BaseRepository
-
-from app.optimizer_api.api.middlewares import db_optimizer_session
 
 
 class OptimizerRepository(BaseRepository):
