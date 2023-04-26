@@ -11,18 +11,32 @@ from app.optimizer_api.exceptions import NotFoundException
 
 
 class FileProvider(AbstractProvider):
-    @classmethod
-    async def get_labels(cls) -> List[str]:
-        labels = []
-        with open(
-            "/app/optimizer_api/api/handlers/audio/classes_tree.csv", newline=""
-        ) as csvfile:
-            reader = csv.DictReader(csvfile)
-            for row in reader:
-                for i in range(6):
-                    labels.append(row[f"{i}"])
+    labels_tree = []
+    with open(
+        "/app/optimizer_api/api/handlers/audio/classes_tree.csv", newline=""
+    ) as csvfile:
+        reader = csv.DictReader(csvfile)
+        for row in reader:
+            for i in range(6):
+                labels_tree.append([i for i in row.values()])
+    labels = [item for sublist in labels_tree for item in sublist]
+    labels = ["Animal", "Music", "Speech", "Dog"]
+    labels = list(sorted(set(labels)))
 
-        return list(sorted(set(labels)))
+    @classmethod
+    def get_label_children(cls, label: str):
+        labels = []
+        for labels_group in cls.labels_tree:
+            for i in range(6):
+                if labels_group[i] == label:
+                    labels.extend(
+                        [
+                            labels_group[j]
+                            for j in range(i, 6)
+                            if labels_group[j] and labels_group[j] not in labels
+                        ]
+                    )
+        return labels
 
     @classmethod
     async def get_random_audio(cls, label: str = None) -> Union[np.ndarray, int]:
@@ -35,7 +49,8 @@ class FileProvider(AbstractProvider):
         ]
 
         if label:
-            files = list(filter(lambda x: label in x, files))
+            labels = cls.get_label_children(label)
+            files = list(filter(lambda x: any([el in x for el in labels]), files))
 
         if not files:
             raise NotFoundException

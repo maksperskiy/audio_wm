@@ -1,5 +1,4 @@
 import base64
-import csv
 import json
 
 import numpy as np
@@ -11,6 +10,8 @@ from app.ai_api.core import settings
 from app.ai_api.database.repositories import AIRepository
 from app.ai_api.schemas.requests.audio import AudioRequest
 from app.ai_api.schemas.responses.params import ParamsResponse
+
+from .label import LabelHandler
 
 
 class PipelineHandler:
@@ -28,18 +29,7 @@ class PipelineHandler:
             data=json.dumps({"inputs": audio.tolist()}),
         )
         if result:
-            labels = {}
-            with open(
-                "/app/ai_api/api/handlers/pipeline/assets/yamnet_class_map.csv",
-                newline="",
-            ) as csvfile:
-                reader = csv.DictReader(csvfile)
-                for row in reader:
-                    labels[int(row["index"])] = row["display_name"]
-
-            return labels.get(
-                np.array(json.loads(result.content)["outputs"]["output_0"]).argmax()
-            )
+            return np.array(json.loads(result.content)["outputs"]["output_0"]).argmax()
 
     @staticmethod
     async def separate(audio: np.ndarray) -> dict:
@@ -63,7 +53,10 @@ class PipelineHandler:
         if request.spleeter:
             _, audio = await cls.separate(audio)
 
-        label = await cls.classify(audio, request.samplerate)
+        label_id = await cls.classify(audio, request.samplerate)
+        label = LabelHandler.labels[label_id]
+
+        label = LabelHandler.get_using_label(label_id)
 
         params = await AIRepository.get(label=label)
         if not params:

@@ -11,9 +11,7 @@ from app.optimizer_api.schemas.responses.audio import LabelsResponse, SoundRespo
 class AudioHandler:
     @staticmethod
     async def get_labels():
-        labels = await FileProvider.get_labels()
-
-        return LabelsResponse(labels=labels)
+        return LabelsResponse(labels=FileProvider.labels)
 
     @staticmethod
     async def get_audio(label: str):
@@ -142,9 +140,8 @@ class AudioHandler:
                 else gradient,
                 "current_param": base_params.current_param + 1,
             }
-            print(base_params.current_param)
             await OptimizerRepository.update(updates, **params)
-            print(base_params.current_param)
+
             if base_params.current_param // base_params.batch_size == 1:
                 new_params = ParamsHistoryModel(
                     step_number=last_params.step_number + 1,
