@@ -50,7 +50,7 @@ class Injector:
         # Ищем максимум
         pos = np.argmax(np.abs(frame))
 
-        if np.abs(frame).max() > 20000:
+        if np.abs(frame).max() > 16000:
             return frame, 0
 
         # Берем интервал = duration мс

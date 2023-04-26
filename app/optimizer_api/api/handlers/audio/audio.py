@@ -72,6 +72,7 @@ class AudioHandler:
     async def optimize(
         cls,
         estimation: EstimationRequest,
+        batch_size: int = 1,
     ) -> None:
         last_params = await OptimizerRepository.get_last_params(estimation.label)
         base_params = await OptimizerRepository.get_last_base_params(estimation.label)
@@ -104,6 +105,8 @@ class AudioHandler:
                 "expert_score": estimation.expert_score,
                 "sound_noise_ratio": estimation.sound_noise_ratio,
                 "success_ratio": estimation.success_ratio,
+                "current_param": 0,
+                "batch_size": batch_size,
             }
             await OptimizerRepository.update(updates, **params)
 
@@ -134,26 +137,31 @@ class AudioHandler:
                 "experiment_number": base_params.experiment_number,
             }
             updates = {
-                "freq_bottom_grad": gradient,
+                "freq_bottom_grad": float(base_params.freq_bottom_grad) + gradient
+                if base_params.freq_bottom_grad
+                else gradient,
+                "current_param": base_params.current_param + 1,
             }
+            print(base_params.current_param)
             await OptimizerRepository.update(updates, **params)
-
-            new_params = ParamsHistoryModel(
-                step_number=last_params.step_number + 1,
-                label=estimation.label,
-                experiment_number=last_params.experiment_number,
-                param_number=1,
-                freq_bottom=base_params.freq_bottom,
-                freq_top=cls.__limit_value(
-                    base_params.freq_top + base_params.freq_top_step,
-                    min_value=base_params.freq_bottom + 500,
-                ),
-                duration=base_params.duration,
-                freq_bottom_step=base_params.freq_bottom_step,
-                freq_top_step=base_params.freq_top_step,
-                duration_step=base_params.duration_step,
-            )
-            await OptimizerRepository.create(new_params)
+            print(base_params.current_param)
+            if base_params.current_param // base_params.batch_size == 1:
+                new_params = ParamsHistoryModel(
+                    step_number=last_params.step_number + 1,
+                    label=estimation.label,
+                    experiment_number=last_params.experiment_number,
+                    param_number=1,
+                    freq_bottom=base_params.freq_bottom,
+                    freq_top=cls.__limit_value(
+                        base_params.freq_top + base_params.freq_top_step,
+                        min_value=base_params.freq_bottom + 500,
+                    ),
+                    duration=base_params.duration,
+                    freq_bottom_step=base_params.freq_bottom_step,
+                    freq_top_step=base_params.freq_top_step,
+                    duration_step=base_params.duration_step,
+                )
+                await OptimizerRepository.create(new_params)
 
         elif last_params.param_number == 1:
             # set to base freq_t grad
@@ -165,27 +173,31 @@ class AudioHandler:
                 "experiment_number": base_params.experiment_number,
             }
             updates = {
-                "freq_top_grad": gradient,
+                "freq_top_grad": float(base_params.freq_top_grad) + gradient
+                if base_params.freq_top_grad
+                else gradient,
+                "current_param": base_params.current_param + 1,
             }
             await OptimizerRepository.update(updates, **params)
 
-            new_params = ParamsHistoryModel(
-                step_number=last_params.step_number + 1,
-                label=estimation.label,
-                experiment_number=last_params.experiment_number,
-                param_number=2,
-                freq_bottom=base_params.freq_bottom,
-                freq_top=base_params.freq_top,
-                duration=cls.__limit_value(
-                    base_params.duration + base_params.duration_step,
-                    min_value=20,
-                    max_value=975,
-                ),
-                freq_bottom_step=base_params.freq_bottom_step,
-                freq_top_step=base_params.freq_top_step,
-                duration_step=base_params.duration_step,
-            )
-            await OptimizerRepository.create(new_params)
+            if base_params.current_param // base_params.batch_size == 2:
+                new_params = ParamsHistoryModel(
+                    step_number=last_params.step_number + 1,
+                    label=estimation.label,
+                    experiment_number=last_params.experiment_number,
+                    param_number=2,
+                    freq_bottom=base_params.freq_bottom,
+                    freq_top=base_params.freq_top,
+                    duration=cls.__limit_value(
+                        base_params.duration + base_params.duration_step,
+                        min_value=20,
+                        max_value=975,
+                    ),
+                    freq_bottom_step=base_params.freq_bottom_step,
+                    freq_top_step=base_params.freq_top_step,
+                    duration_step=base_params.duration_step,
+                )
+                await OptimizerRepository.create(new_params)
 
         elif last_params.param_number == 2:
             # set to base duration grad
@@ -196,74 +208,81 @@ class AudioHandler:
                 "experiment_number": base_params.experiment_number,
             }
             updates = {
-                "duration_grad": gradient,
+                "duration_grad": float(base_params.duration_grad) + gradient
+                if base_params.duration_grad
+                else gradient,
+                "current_param": base_params.current_param + 1,
             }
             await OptimizerRepository.update(updates, **params)
             # create new base with updated params, steps, empty param_number, reward and grads
             # reset steps if step_number more that xx
 
-            if (
-                base_params.freq_bottom_step <= 1
-                and base_params.freq_top_step <= 1
-                and base_params.duration_step <= 1
-            ):
-                new_freq_bottom_step = 100
-                new_freq_top_step = 100
-                new_duration_step = 100
-            else:
-                new_freq_bottom_step = (
-                    base_params.freq_bottom_step / 2
-                    if base_params.freq_bottom_grad <= 0
-                    else base_params.freq_bottom_step
-                )
-                new_freq_top_step = (
-                    base_params.freq_top_step / 2
-                    if base_params.freq_top_grad <= 0
-                    else base_params.freq_top_step
-                )
-                new_duration_step = (
-                    base_params.duration_step / 2
-                    if base_params.duration_grad <= 0
-                    else base_params.duration_step
-                )
+            if base_params.current_param // base_params.batch_size == 3:
+                if (
+                    base_params.freq_bottom_step <= 1
+                    and base_params.freq_top_step <= 1
+                    and base_params.duration_step <= 1
+                ):
+                    new_freq_bottom_step = 100
+                    new_freq_top_step = 100
+                    new_duration_step = 100
+                else:
+                    new_freq_bottom_step = (
+                        base_params.freq_bottom_step / 2
+                        if base_params.freq_bottom_grad <= 0
+                        else base_params.freq_bottom_step
+                    )
+                    new_freq_top_step = (
+                        base_params.freq_top_step / 2
+                        if base_params.freq_top_grad <= 0
+                        else base_params.freq_top_step
+                    )
+                    new_duration_step = (
+                        base_params.duration_step / 2
+                        if base_params.duration_grad <= 0
+                        else base_params.duration_step
+                    )
 
-            if last_params.step_number // 84 >= 1 or (
-                base_params.freq_bottom_step <= 1
-                and base_params.freq_top_step <= 1
-                and base_params.duration_step <= 1
-            ):
-                rate = 1000
-            else:
-                rate = 10000
+                if last_params.step_number // 84 >= 1 or (
+                    base_params.freq_bottom_step <= 1
+                    and base_params.freq_top_step <= 1
+                    and base_params.duration_step <= 1
+                ):
+                    rate = 1000
+                else:
+                    rate = 10000
 
-            new_params = ParamsHistoryModel(
-                step_number=last_params.step_number + 1,
-                label=estimation.label,
-                experiment_number=last_params.experiment_number,
-                freq_bottom=cls.__limit_value(
-                    base_params.freq_bottom + rate * base_params.freq_bottom_grad,
-                    max_value=base_params.freq_top - 500,
-                ),
-                freq_top=cls.__limit_value(
-                    base_params.freq_top + rate * base_params.freq_top_grad,
-                    min_value=base_params.freq_bottom + 500,
-                ),
-                duration=cls.__limit_value(
-                    base_params.duration + rate * base_params.duration_grad,
-                    min_value=20,
-                    max_value=975,
-                ),
-                freq_bottom_step=new_freq_bottom_step,
-                freq_top_step=new_freq_top_step,
-                duration_step=new_duration_step,
-            )
-            await OptimizerRepository.create(new_params)
+                new_params = ParamsHistoryModel(
+                    step_number=last_params.step_number + 1,
+                    label=estimation.label,
+                    experiment_number=last_params.experiment_number,
+                    freq_bottom=cls.__limit_value(
+                        base_params.freq_bottom
+                        + rate
+                        * (base_params.freq_bottom_grad / base_params.batch_size),
+                        max_value=base_params.freq_top - 500,
+                    ),
+                    freq_top=cls.__limit_value(
+                        base_params.freq_top
+                        + rate * (base_params.freq_top_grad / base_params.batch_size),
+                        min_value=base_params.freq_bottom + 500,
+                    ),
+                    duration=cls.__limit_value(
+                        base_params.duration
+                        + rate * (base_params.duration_grad / base_params.batch_size),
+                        min_value=20,
+                        max_value=975,
+                    ),
+                    freq_bottom_step=new_freq_bottom_step,
+                    freq_top_step=new_freq_top_step,
+                    duration_step=new_duration_step,
+                )
+                await OptimizerRepository.create(new_params)
 
     @staticmethod
     async def reset_label(label: str) -> None:
         last_params = await OptimizerRepository.get_last_params(label)
         if last_params:
-            print(last_params.experiment_number)
             await OptimizerRepository.intialize_params(
                 label=label, experiment_number=last_params.experiment_number + 1
             )

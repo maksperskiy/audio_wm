@@ -11,6 +11,9 @@ class ParamsHistoryModel(Base):
     experiment_number = Column(Integer, primary_key=True)
     label = Column(String(255), primary_key=True)
 
+    current_param = Column(Integer)
+    batch_size = Column(Integer, default=1)
+
     message = Column(BIGINT)
 
     param_number = Column(Integer)
