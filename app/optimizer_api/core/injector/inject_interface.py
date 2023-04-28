@@ -14,7 +14,7 @@ def inject_in_stream(streams: List[List], samplerate: int, param: Alg_parametrs)
     output_file_name = f"./injected123456_temp_test_data_{sign}"
     write_data_in_file(input_file_name, streams, samplerate, param)
 
-    print(f"start subprocess")
+    # print(f"start subprocess")
     # path_to_app = '/home/INTEXSOFT/alexander.polianski/work/video project/audio_wm/Scripts/C_code/bin/Debug/video_test'
     # path_to_app = '/home/INTEXSOFT/alexander.polianski/work/video project/audio_wm/Scripts/C_code/bin/Release/video_test'
     path_to_app = "/home/INTEXSOFT/maksim.stupakevich/work/audio_cls/injector/C_code/bin/Release/video_test"  # locally
@@ -22,9 +22,9 @@ def inject_in_stream(streams: List[List], samplerate: int, param: Alg_parametrs)
     result = subprocess.run(
         [path_to_app, "-i", input_file_name, output_file_name], stdout=subprocess.PIPE
     )
-    print(f" subprocess stdout")
-    print(result.stdout.decode("utf-8"))
-    print(f"end subprocess")
+    # print(f" subprocess stdout")
+    # print(result.stdout.decode("utf-8"))
+    # print(f"end subprocess")
 
     data = read_data_from_file(output_file_name)
     # delete files

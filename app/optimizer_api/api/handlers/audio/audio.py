@@ -64,7 +64,7 @@ class AudioHandler:
         result = SoundResponse(
             label=label,
             message=message,
-            extracted_message=message if sound_noise_ratio else 0,
+            extracted_message=message if success_ratio else 0,
             sound_array=sound.tolist(),
             injected_sound_array=injected_sound.tolist(),
             samplerate=samplerate,
