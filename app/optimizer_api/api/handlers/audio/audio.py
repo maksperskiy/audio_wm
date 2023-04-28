@@ -1,11 +1,14 @@
 import numpy as np
 
-from app.optimizer_api.core.injector import Extractor, Injector
+from app.optimizer_api.core.injector.inject_interface import inject_in_stream
+from app.optimizer_api.core.injector.parametrs import Alg_parametrs
 from app.optimizer_api.database.audio_provider import FileProvider
 from app.optimizer_api.database.models import ParamsHistoryModel
 from app.optimizer_api.database.repositories import OptimizerRepository
 from app.optimizer_api.schemas.requests.audio import EstimationRequest
 from app.optimizer_api.schemas.responses.audio import LabelsResponse, SoundResponse
+
+import math
 
 
 class AudioHandler:
@@ -14,7 +17,30 @@ class AudioHandler:
         return LabelsResponse(labels=FileProvider.labels)
 
     @staticmethod
-    async def get_audio(label: str):
+    async def process_sound(sound, samplerate, params):
+        result = inject_in_stream(sound.T, samplerate, params)
+        
+        if len(sound.shape) == 2:
+            injected_sound = np.column_stack(
+                [
+                    np.array(result[0][0], dtype=np.int16),
+                    np.array(result[1][0], dtype=np.int16),
+                ]
+            )
+            sound_noise_ratio = (result[0][1].SNR + result[1][1].SNR) / 2
+            success_ratio = (
+                result[0][1].inject_count_dwm / result[0][1].max_count_dwm
+                + result[1][1].inject_count_dwm / result[1][1].max_count_dwm
+            ) / 2
+        else:
+            injected_sound = np.array(result[0][0], dtype=np.int16)
+            sound_noise_ratio = result[0][1].SNR
+            success_ratio = result[0][1].inject_count_dwm / result[0][1].max_count_dwm
+
+        return injected_sound, sound_noise_ratio if not math.isinf(sound_noise_ratio) else 0, success_ratio
+
+    @classmethod
+    async def get_audio(cls, label: str):
         sound, samplerate = await FileProvider.get_random_audio(label)
         params = await OptimizerRepository.get_last_params(label)
 
@@ -24,30 +50,26 @@ class AudioHandler:
         if sound.dtype == "int32":
             sound = (sound >> 16).astype(np.int16)
         message = 0x123456
-        injector = Injector(
-            message=message,
-            bottom_freq=params.freq_bottom,
-            top_freq=params.freq_top,
-            duration=params.duration,
-        )
-        injected_sound, _, _, _, sound_noise_ratio = injector.process(sound, samplerate)
 
-        extractor = Extractor(
+        params = Alg_parametrs(
+            N=10000,
+            DWM=message,
             bottom_freq=params.freq_bottom,
             top_freq=params.freq_top,
             duration=params.duration,
         )
-        extracted_message, success_ratio = extractor.process(injected_sound, samplerate)
+
+        injected_sound, sound_noise_ratio, success_ratio = await cls.process_sound(sound, samplerate, params)
 
         result = SoundResponse(
             label=label,
-            message=0x123456,
-            extracted_message=extracted_message,
+            message=message,
+            extracted_message=message if sound_noise_ratio else 0,
             sound_array=sound.tolist(),
             injected_sound_array=injected_sound.tolist(),
             samplerate=samplerate,
             sound_noise_ratio=sound_noise_ratio,
-            success_ratio=1 if message == extracted_message else 0,
+            success_ratio=success_ratio,
         )
         return result
 

@@ -7,6 +7,9 @@ COPY docker/optimizer/requirements.txt /app/
 RUN pip install --upgrade pip
 RUN pip install -r /app/requirements.txt
 
+RUN apt-get update
+RUN apt-get install -y fftw3 fftw3-dev pkg-config
+
 FROM base as app
 
 # WORKDIR /app/
